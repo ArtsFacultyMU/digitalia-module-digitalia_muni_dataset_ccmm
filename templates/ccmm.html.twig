@@ -387,21 +387,31 @@
     </description>
     {% endif %}
 
+    {% for data_service in elements.data_services %}
     <distribution>
-        {% for data_service in elements.data_services %}
         <distribution_data_service>
             <iri>{{ data_service }}</iri>
+            {% for endpoint in elements.endpoint_url %}
+            <access_service>
+                <iri>{{ data_service }}</iri>
+                <endpoint_url>
+                    <iri>{{ endpoint }}</iri>
+                </endpoint_url>
+            </access_service>
+            {% endfor %}
         </distribution_data_service>
-        {% endfor %}
+    </distribution>
+    {% endfor %}
 
-        {% for url in elements.download_url %}
+    {% for url in elements.download_url %}
+    <distribution>
         <distribution_downloadable_file>
             <download_url>
                 <!-- link to direct access data -->
                 <iri>{{ url }}</iri>
             </download_url>
         </distribution_downloadable_file>
-        {% endfor %}
     </distribution>
+    {% endfor %}
 
 </dataset>
