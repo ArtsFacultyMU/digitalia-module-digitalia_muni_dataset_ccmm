@@ -95,12 +95,14 @@ class CCMM extends OaiMetadataMapBase {
 
     $parser = \EDTF\EdtfFactory::newParser();
 
+    $render_array['elements']['agent_is_person'][] = [];
     $render_array['elements']['role_uri'] = [];
     $render_array['elements']['person_first_names'] = [];
     $render_array['elements']['person_last_names'] = [];
     $render_array['elements']['person_orcid'] = [];
     $render_array['elements']['org_name'] = [];
     $render_array['elements']['org_ror'] = [];
+    $render_array['elements']['affiliation'] = [];
 
     foreach ($view_result as $row) {
       foreach ($view->field as $field) {
@@ -172,18 +174,19 @@ class CCMM extends OaiMetadataMapBase {
     $storage = \Drupal::entityTypeManager()->getStorage('digitalia_muni_entity');
     $entities = $storage->loadMultiple($entity_ids);
 
-              $qualified_relations['elements']['person_first_names'][] = $first_names;
-          $qualified_relations['elements']['person_last_names'][] = $last_names;
-          $qualified_relations['elements']['person_orcid'][] = $orcid;
-          //$qualified_relations['elements']['affiliation_name'][] = $affiliation_name;
-
-    $org_name = '';
-    $ror_id = '';
-
     foreach ($entity_ids as $entity_id) {
       if (empty($entities[$entity_id])) {
         continue;
       }
+
+      $ror_iri = '';
+      $agent_is_person = '';
+      $first_names = '';
+      $last_names = '';
+      $orcid = '';
+      $affiliation = '';
+      $org_name = '';
+      $ror_id = '';
 
       $entity = $entities[$entity_id];
 
@@ -193,27 +196,21 @@ class CCMM extends OaiMetadataMapBase {
           continue;
         }
 
-        $qualified_relations['elements']['agent_is_person'][] = 'TRUE';
+        $agent_is_person = 'TRUE';
         $first_names = $related_person[0]->get('field_first_names')->value ?? '';
         $last_names  = $related_person[0]->get('field_last_names')->value ?? '';
         $orcid       = $related_person[0]->get('field_orcid')->value ?? '';
         $orcid = preg_replace('#^\s*https?://orcid\.org/#i', '', $orcid);
-        $org_name = '';
-        $ror_id = '';
         $affiliation = $related_person[0]->get('field_corporate_body_name')->value ?? '';
       } else {
         $related_organisation = $entity->get('field_related_organisation')->referencedEntities();
         if (empty($related_organisation)) {
           continue;
         }
-        $qualified_relations['elements']['agent_is_person'][] = 'FALSE';
+        $agent_is_person = 'FALSE';
         $org_name = $related_organisation[0]->get('field_corporate_body_name')->value ?? '';
         $ror_id = $related_organisation[0]->get('field_ror')->value ?? '';
         $ror_id = preg_replace('#^\s*https?://ror\.org/#i', '', $ror_id);
-        $orcid = '';
-        $first_names = '';
-        $last_names = '';
-        $affiliation = '';
       }
 
       $agent_role_terms = $entity->get('field_agent_role')->referencedEntities();
@@ -236,12 +233,12 @@ class CCMM extends OaiMetadataMapBase {
             continue;
           }
           // to do contact
+          $qualified_relations['elements']['agent_is_person'][] = $agent_is_person;
           $qualified_relations['elements']['role_uri'][] = $link_item->getValue()['uri'];
           $qualified_relations['elements']['person_first_names'][] = $first_names;
           $qualified_relations['elements']['person_last_names'][] = $last_names;
           $qualified_relations['elements']['person_orcid'][] = $orcid;
           $qualified_relations['elements']['affiliation'][] = $affiliation;
-
           $qualified_relations['elements']['org_name'][] = $org_name;
           $qualified_relations['elements']['org_ror'][] = $ror_id;
         }

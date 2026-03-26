@@ -48,3 +48,7 @@ tar czf - digitalia_muni_dataset_ccmm | kubectl exec -i drupal-<pod_id> -- tar x
 # check OAI-PMH
 
 /oai/request?verb=ListRecords&metadataPrefix=ccmm-xml
+
+/oai/request?verb=ListRecords&metadataPrefix=oai_dc
+
+/oai/request?verb=GetRecord&identifier=oai:metasys.phil.muni.cz:node-6&metadataPrefix=ccmm-xml

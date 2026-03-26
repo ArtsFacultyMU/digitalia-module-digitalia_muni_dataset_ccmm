@@ -72,13 +72,13 @@
             <value>{{ elements.person_orcid[ loop.index ] }}</value>
             <scheme>
                 <iri>https://orcid.org/</iri>
-                <label xml:lang="">ORCID</label>
+                <label xml:lang="en">ORCID</label>
             </scheme>
         </identifier>
         {% endif %}
-        <name>{% if elements.person_first_names[ loop.index ] is not empty and elements.person_last_names[ loop.index ] is not empty %}{{ elements.person_first_names[ loop.index ]|trim }} {{ elements.person_last_names[ loop.index ] }} {% else %} :unkn {% endif %}</name>
-        <given_name>{% if elements.person_first_names[ loop.index ] is not empty %}{{ elements.person_first_names[ loop.index ]|trim }} {% else %} :unkn {% endif %}</given_name>
-        <family_name>{% if elements.person_last_names[ loop.index ] is not empty %}{{ elements.person_last_names[ loop.index ]|trim }} {% else %} :unkn {% endif %}</family_name>
+        <name>{% if elements.person_first_names[ loop.index ] is not empty and elements.person_last_names[ loop.index ] is not empty %}{{ elements.person_first_names[ loop.index ]|trim }} {{ elements.person_last_names[ loop.index ]|trim }} {% else %} :unkn {% endif %}</name>
+        <given_name>{% if elements.person_first_names[ loop.index ] is not empty %}{{ elements.person_first_names[ loop.index ]|trim }}{% else %} :unkn {% endif %}</given_name>
+        <family_name>{% if elements.person_last_names[ loop.index ] is not empty %}{{ elements.person_last_names[ loop.index ]|trim }}{% else %} :unkn {% endif %}</family_name>
         {% if elements.affiliation[ loop.index ] is not empty %}
         <affiliation>
             <name>{{ elements.affiliation[ loop.index ] }}</name>
@@ -297,10 +297,10 @@
   </time_reference>
   {% endif %}
 
-{% for source in resource_type_source %}
+{% for source in resource_type_source |split (', ') %}
   {% if source == 'Confederation of Open Access Repositories' %}
   <resource_type>
-      <iri>{{ elements.resource_type_uri[ loop.index ] }} </iri>
+      <iri>{{ elements.resource_type_uri |split (', ')[ loop.index ] }} </iri>
       <label xml:lang="en">{{ elements.resource_type }}</label>
   </resource_type>
   {% endif %}
@@ -387,11 +387,11 @@
     </description>
     {% endif %}
 
-    {% for data_service in elements.data_services %}
+    {% for data_service in elements.data_services |split (', ') %}
     <distribution>
         <distribution_data_service>
             <iri>{{ data_service }}</iri>
-            {% for endpoint in elements.endpoint_url %}
+            {% for endpoint in elements.endpoint_url |split (', ') %}
             <access_service>
                 <iri>{{ data_service }}</iri>
                 <endpoint_url>
@@ -403,7 +403,7 @@
     </distribution>
     {% endfor %}
 
-    {% for url in elements.download_url %}
+    {% for url in elements.download_url |split (', ') %}
     <distribution>
         <distribution_downloadable_file>
             <download_url>
