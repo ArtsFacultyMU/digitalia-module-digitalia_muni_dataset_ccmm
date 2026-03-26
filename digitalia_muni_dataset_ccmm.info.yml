@@ -1,0 +1,13 @@
+name: 'Digitalia MUNI Dataset CCMM module'
+type: module
+description: 'CCMM mapping for datasets'
+package: digitalia
+core_version_requirement: ^10 || ^11
+dependencies:
+  - rest_oai_pmh
+  - views
+  - FilterUserSystem
+  - RESTful Web Services
+  - serialization
+
+# dataset content type (archaeovault)

@@ -1,0 +1,407 @@
+<dataset>
+  <metadata_identification>
+    <!-- references the original metadata IRI -->
+    <iri>{{ elements.platform_url }}{{ elements.metadata_relative_link}}</iri>
+    <language>
+        {% if elements.metadata_language == 'English' %}
+        <iri>http://publications.europa.eu/resource/authority/language/ENG</iri>
+        {% else %}
+        <iri>http://publications.europa.eu/resource/authority/language/CES</iri>
+        {% endif %}
+        <label xml:lang={% if elements.metadata_language == 'English' %}"en"{% else %}"cs"{% endif %}>{{ elements.metadata_language }}</label>
+    </language>
+    <qualified_relation>
+      <relation>
+        <person>
+          <!-- DataCite unknown placeholder, used when real information is not available -->
+          <name>{{ elements.metadata_author }}</name>
+          <given_name>:unkn</given_name>
+          <family_name>:unkn</family_name>
+        </person>
+      </relation>
+      <role>
+        <iri>https://vocabs.ccmm.cz/registry/codelist/AgentRole/Contributor/DataManager</iri>
+      </role>
+    </qualified_relation>
+
+    <!-- (1..n) Conforms to standard: this is the minimal variant with an IRI -->
+    <conforms_to_standard>
+        <iri>https://model.ccmm.cz/research-data/1.1.0</iri>
+    </conforms_to_standard>
+       <original_repository>
+            <iri>{{ elements.platform_url }}</iri>
+       </original_repository>
+  </metadata_identification>
+
+  <!-- (1-1) Identifier -->
+{% if elements.doi is not empty %}
+  <identifier>
+    <iri>https://doi.org/{{ elements.doi }}</iri>
+    <value>{{ elements.doi }}</value>
+    <scheme>
+      <iri>https://doi.org/</iri>
+    </scheme>
+  </identifier>
+{% endif %}
+
+  <!-- (1-1) Title; without alternate title type "translated title" – if provided, it must include the type -->
+  <title>{{ elements.title }}</title>
+  {% if elements.subtitle is not empty %}
+  <alternate_title>
+      <title xml:lang={% if elements.metadata_language == 'English' %}"en"{% else %}"cs"{% endif %}>{{ elements.subtitle }}</title>
+      <alternate_title_type>
+          <iri>https://vocabs.ccmm.cz/registry/codelist/AlternateTitle/Subtitle</iri>
+          <label xml:lang="cs">Podnázev</label>
+          <label xml:lang="en">Subtitle</label>
+      </alternate_title_type>
+  </alternate_title>
+  {% endif %}
+
+  <!-- Qualified relation: The usage note for “qualified relation” specifies that
+       each dataset shall have at least two qualified relations: one with role “Creator” 
+       and the second with role "Publisher". -->
+
+  {% for _ in elements.role_uri %}
+  <qualified_relation>
+    <relation>
+      {% if elements.agent_is_person %}
+      <person>
+        {% if elements.person_orcid[ loop.index ] is not empty %}
+        <identifier>
+            <iri>https://orcid.org/{{ elements.person_orcid[ loop.index ] }}</iri>
+            <value>{{ elements.person_orcid[ loop.index ] }}</value>
+            <scheme>
+                <iri>https://orcid.org/</iri>
+                <label xml:lang="">ORCID</label>
+            </scheme>
+        </identifier>
+        {% endif %}
+        <name>{% if elements.person_first_names[ loop.index ] is not empty and elements.person_last_names[ loop.index ] is not empty %}{{ elements.person_first_names[ loop.index ]|trim }} {{ elements.person_last_names[ loop.index ] }} {% else %} :unkn {% endif %}</name>
+        <given_name>{% if elements.person_first_names[ loop.index ] is not empty %}{{ elements.person_first_names[ loop.index ]|trim }} {% else %} :unkn {% endif %}</given_name>
+        <family_name>{% if elements.person_last_names[ loop.index ] is not empty %}{{ elements.person_last_names[ loop.index ]|trim }} {% else %} :unkn {% endif %}</family_name>
+        {% if elements.affiliation[ loop.index ] is not empty %}
+        <affiliation>
+            <name>{{ elements.affiliation[ loop.index ] }}</name>
+        </affiliation>
+        {% endif %}
+      </person>
+      {% else %}
+      <organization>
+        {% if elements.org_ror[ loop.index ]  is not empty %}
+        <identifier>
+            <iri>https://ror.org/{{ elements.org_ror[ loop.index ] }}</iri>
+            <value>{{ elements.org_ror[ loop.index] }}</value>
+            <scheme>
+                <iri>https://ror.org/</iri>
+                <label xml:lang="">ROR</label>
+            </scheme>
+        </identifier>
+        {% endif %}
+        <name>{% if elements.org_name[ loop.index ] is not empty %} {{ elements.org_name[ loop.index ] }} {% else %} :unkn {% endif %}</name>
+      </organization>
+      {% endif %}
+    </relation>
+    <role>
+      <iri>{{ elements.role_uri[ loop.index ] }}</iri>
+    </role>
+  </qualified_relation>
+  {% endfor %}
+
+  {% if 'https://vocabs.ccmm.cz/registry/codelist/AgentRole/Creator' not in elements.role_uri %}
+  <qualified_relation>
+    <relation>
+      <person>
+        <name>:unkn</name>
+        <given_name>:unkn</given_name>
+        <family_name>:unkn</family_name>
+      </person>
+    </relation>
+    <role>
+      <iri>https://vocabs.ccmm.cz/registry/codelist/AgentRole/Creator</iri>
+    </role>
+  </qualified_relation>
+  {% endif %}
+
+  {% if 'https://vocabs.ccmm.cz/registry/codelist/AgentRole/Publisher' not in elements.role_uri %}
+  <qualified_relation>
+    <relation>
+      <organization>
+        <identifier>
+            <iri>https://ror.org/02j46qs45</iri>
+            <value>02j46qs45</value>
+            <scheme>
+                <iri>https://ror.org/</iri>
+                <label xml:lang="">ROR</label>
+            </scheme>
+        </identifier>
+        <name>Masaryk University</name>
+      </organization>
+    </relation>
+    <role>
+      <iri>https://vocabs.ccmm.cz/registry/codelist/AgentRole/Publisher</iri>
+    </role>
+  </qualified_relation>
+  {% endif %}
+    
+  <!-- (1-1) Publication year -->
+  <publication_year>{{ elements.publication_year }}</publication_year>
+
+  <!-- (1..n) Must contain at least one time reference "Created"; it must include either 
+       a time_instant or a time_interval -->
+
+  <time_reference>
+       <temporal_representation>
+         {% if elements.date_created is not empty %}
+            {% if elements.date_created_earliest == elements.date_created_latest %}
+            <time_instant>
+                 <date>{{ elements.date_created_earliest }}</date>
+            </time_instant>
+            {% else %}
+            <time_interval>
+                <beginning>
+                    <date>{{ elements.date_created_earliest }}</date>
+                </beginning>
+                <end>
+                    <date>{{ elements.date_created_latest }}</date>
+                </end>
+            </time_interval>
+            {% endif %}
+        {% else %}
+        <time_instant>
+            <date>:unkn</date>
+        </time_instant>
+       {% endif %}
+       </temporal_representation>
+       <date_type>
+            <iri>https://vocabs.ccmm.cz/registry/codelist/TimeReference/Created</iri>
+       </date_type>
+  </time_reference>
+
+  {% if elements.date_accepted is not empty %}
+  <time_reference>
+       <temporal_representation>
+            {% if elements.date_accepted_earliest == elements.date_accepted_latest %}
+            <time_instant>
+                 <date>{{ elements.date_accepted_earliest }}</date>
+            </time_instant>
+            {% else %}
+            <time_interval>
+                <beginning>
+                    <date>{{ elements.date_accepted_earliest }}</date>
+                </beginning>
+                <end>
+                    <date>{{ elements.date_accepted_latest }}</date>
+                </end>
+            </time_interval>
+            {% endif %}
+       </temporal_representation>
+       <date_type>
+            <iri>https://vocabs.ccmm.cz/registry/codelist/TimeReference/Accepted</iri>
+       </date_type>
+  </time_reference>
+  {% endif %}
+
+  {% if elements.date_collected is not empty %}
+  <time_reference>
+       <temporal_representation>
+            {% if elements.date_collected_earliest == elements.date_collected_latest %}
+            <time_instant>
+                 <date>{{ elements.date_collected_earliest }}</date>
+            </time_instant>
+            {% else %}
+            <time_interval>
+                <beginning>
+                    <date>{{ elements.date_collected_earliest }}</date>
+                </beginning>
+                <end>
+                    <date>{{ elements.date_collected_latest }}</date>
+                </end>
+            </time_interval>
+            {% endif %}
+       </temporal_representation>
+       <date_type>
+            <iri>https://vocabs.ccmm.cz/registry/codelist/TimeReference/Collected</iri>
+       </date_type>
+  </time_reference>
+  {% endif %}
+
+  {% if elements.date_coverage is not empty %}
+  <time_reference>
+       <temporal_representation>
+            {% if elements.date_coverage_earliest == elements.date_coverage_latest %}
+            <time_instant>
+                 <date>{{ elements.date_coverage_earliest }}</date>
+            </time_instant>
+            {% else %}
+            <time_interval>
+                <beginning>
+                    <date>{{ elements.date_coverage_earliest }}</date>
+                </beginning>
+                <end>
+                    <date>{{ elements.date_coverage_latest }}</date>
+                </end>
+            </time_interval>
+            {% endif %}
+       </temporal_representation>
+       <date_type>
+            <iri>https://vocabs.ccmm.cz/registry/codelist/TimeReference/Coverage</iri>
+       </date_type>
+  </time_reference>
+  {% endif %}
+
+  {% if elements.date_available is not empty %}
+  <time_reference>
+       <temporal_representation>
+            {% if elements.date_available_earliest == elements.date_available_latest %}
+            <time_instant>
+                 <date>{{ elements.date_available_earliest }}</date>
+            </time_instant>
+            {% else %}
+            <time_interval>
+                <beginning>
+                    <date>{{ elements.date_available_earliest }}</date>
+                </beginning>
+                <end>
+                    <date>{{ elements.date_available_latest }}</date>
+                </end>
+            </time_interval>
+            {% endif %}
+       </temporal_representation>
+       <date_type>
+            <iri>https://vocabs.ccmm.cz/registry/codelist/TimeReference/Available</iri>
+       </date_type>
+  </time_reference>
+  {% endif %}
+
+  {% if elements.date_issued is not empty %}
+  <time_reference>
+       <temporal_representation>
+            {% if elements.date_issued_earliest == elements.date_issued_latest %}
+            <time_instant>
+                 <date>{{ elements.date_issued_earliest }}</date>
+            </time_instant>
+            {% else %}
+            <time_interval>
+                <beginning>
+                    <date>{{ elements.date_issued_earliest }}</date>
+                </beginning>
+                <end>
+                    <date>{{ elements.date_issued_latest }}</date>
+                </end>
+            </time_interval>
+            {% endif %}
+       </temporal_representation>
+       <date_type>
+            <iri>https://vocabs.ccmm.cz/registry/codelist/TimeReference/Issued</iri>
+       </date_type>
+  </time_reference>
+  {% endif %}
+
+{% for source in resource_type_source %}
+  {% if source == 'Confederation of Open Access Repositories' %}
+  <resource_type>
+      <iri>{{ elements.resource_type_uri[ loop.index ] }} </iri>
+      <label xml:lang="en">{{ elements.resource_type }}</label>
+  </resource_type>
+  {% endif %}
+{% endfor %}
+
+  <!-- (1-1) Terms of use: access rights and license -->
+  <terms_of_use>
+    <access_rights>
+      <!-- Open Access -->
+      <iri>http://purl.org/coar/access_right/c_abf2</iri>
+    </access_rights>
+    <license>
+      <iri>{{ elements.license_uri }}</iri>
+      <label xml:lang="en">{{ elements.license_name }}</label>
+    </license>
+  </terms_of_use>
+
+  <!-- (1-*) Specify at least one subject with iri and title -->
+  <subject>
+    <iri>{{ elements.frascati_uri }}</iri>
+    <title xml:lang="en">{{ elements.subject_frascati }}</title>
+    <subject_scheme>
+      <iri>https://vocabs.ccmm.cz/registry/codelist/SubjectCategory/</iri>
+    </subject_scheme>
+  </subject>
+
+  {% for topic in elements.subject_keywords |split (', ') %}
+  <subject>
+      <title xml:lang={% if elements.metadata_language == 'English' %}"en"{% else %}"cs"{% endif %}>{{ topic|trim }}</title>
+  </subject>
+  {% endfor %}
+
+  <!-- Description fields -->
+    <description>
+        <description_text xml:lang={% if elements.metadata_language == 'English' %}"en"{% else %}"cs"{% endif %}>{{ elements.abstract }}</description_text>
+        <description_type>
+            <iri>https://vocabs.ccmm.cz/registry/codelist/DescriptionType/Abstract</iri>
+            <label xml:lang="en">Abstract</label>
+            <label xml:lang="cs">Abstrakt</label>
+        </description_type>
+    </description>
+
+    {% if elements.methods is not empty %}
+    <description>
+        <description_text xml:lang={% if elements.metadata_language == 'English' %}"en"{% else %}"cs"{% endif %}>{{ elements.methods }}</description_text>
+        <description_type>
+            <iri>https://vocabs.ccmm.cz/registry/codelist/DescriptionType/Methods</iri>
+            <label xml:lang="en">Methods</label>
+            <label xml:lang="cs">Metodologie</label>
+        </description_type>
+    </description>
+    {% endif %}
+
+    {% if elements.table_of_contents is not empty %}
+    <description>
+        <description_text xml:lang={% if elements.metadata_language == 'English' %}"en"{% else %}"cs"{% endif %}>{{ elements.table_of_contents }}</description_text>
+        <description_type>
+            <iri>https://vocabs.ccmm.cz/registry/codelist/DescriptionType/TableOfContents</iri>
+            <label xml:lang="en">Table Of Contents</label>
+            <label xml:lang="cs">Obsah</label>
+        </description_type>
+    </description>
+    {% endif %}
+
+    {% if elements.series_information is not empty %}
+    <description>
+        <description_text xml:lang={% if elements.metadata_language == 'English' %}"en"{% else %}"cs"{% endif %}>{{ elements.series_information }}</description_text>
+        <description_type>
+            <iri>https://vocabs.ccmm.cz/registry/codelist/DescriptionType/SeriesInformation</iri>
+            <label xml:lang="en">Series Information</label>
+            <label xml:lang="cs">Informace o sérii</label>
+        </description_type>
+    </description>
+    {% endif %}
+
+    {% if elements.technical_info is not empty %}
+    <description>
+        <description_text xml:lang={% if elements.metadata_language == 'English' %}"en"{% else %}"cs"{% endif %}>{{ elements.technical_info }}</description_text>
+        <description_type>
+            <iri>https://vocabs.ccmm.cz/registry/codelist/DescriptionType/TechnicalInfo</iri>
+            <label xml:lang="en">Technical Info</label>
+            <label xml:lang="cs">Technická informace</label>
+        </description_type>
+    </description>
+    {% endif %}
+
+    <distribution>
+        {% for data_service in elements.data_services %}
+        <distribution_data_service>
+            <iri>{{ data_service }}</iri>
+        </distribution_data_service>
+        {% endfor %}
+
+        {% for url in elements.download_url %}
+        <distribution_downloadable_file>
+            <download_url>
+                <!-- link to direct access data -->
+                <iri>{{ url }}</iri>
+            </download_url>
+        </distribution_downloadable_file>
+        {% endfor %}
+    </distribution>
+
+</dataset>

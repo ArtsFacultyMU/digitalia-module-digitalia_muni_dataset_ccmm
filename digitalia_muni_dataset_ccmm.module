@@ -1,0 +1,45 @@
+<?php
+
+use Drupal\Core\Routing\RouteMatchInterface;
+
+/**
+ * Implements hook_help().
+ */
+function digitalia_muni_dataset_ccmm_help($route_name, RouteMatchInterface $route_match) {
+  switch ($route_name) {
+    // Main module help for the rest_oai_pmh module.
+    case 'help.page.rest_oai_pmh_ccmm':
+      $output = '';
+      $output .= '<h3>' . t('About') . '</h3>';
+      $output .= '<p>' . t('CCMM format for rest_oai_pmh') . '</p>';
+      return $output;
+
+    default:
+  }
+}
+
+// // is this correct? I need to add nex format not alter mods
+// /**
+//  * Implements hook_rest_oai_pmh_metadata_format_alter().
+//  */
+// function digitalia_muni_dataset_ccmm_rest_oai_pmh_metadata_format_alter(array &$metadata_format) {
+//   if ($metadata_format['metadataPrefix'] == 'ccmm-xml') {
+//     $metadata_format['schema'] = 'https://model.ccmm.cz/research-data/dataset/schema.xsd';
+//     $metadata_format['metadataNamespace'] = 'https://schema.ccmm.cz/research-data/1.1';
+//   }
+// }
+
+// /**
+//  * Implements hook_token_info().
+//  */
+// function digitalia_muni_dataset_ccmm_token_info() {
+//   $info = [];
+
+//   // Add token to node tokens
+//   $info['tokens']['node']['ccmm-creator-name'] = [
+//     'name' => t('Creator full name'),
+//     'description' => t('Full name of the creator entity referenced from dataset.'),
+//   ];
+
+//   return $info;
+// }
