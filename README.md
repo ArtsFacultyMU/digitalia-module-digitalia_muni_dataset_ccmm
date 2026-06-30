@@ -1,3 +1,7 @@
+<p align="left">
+  <img src="https://webcentrum.muni.cz/media/3830724/seda_eosc-safespace-15.png" alt="EOSC CZ Logo" height="150">
+</p>
+
 # CCMM OAI-PMH endpoint
 
 This module is created for mapping the Dataset content type used on ArchaeoVault to CCMM in order for the records to be harvested to NMA. The module is also used for harvesting of Digitalia MUNI ARTS datasets and collections to NMA on Metasys.
@@ -52,3 +56,14 @@ tar czf - digitalia_muni_dataset_ccmm | kubectl exec -i drupal-<pod_id> -- tar x
 /oai/request?verb=ListRecords&metadataPrefix=oai_dc
 
 /oai/request?verb=GetRecord&identifier=oai:metasys.phil.muni.cz:node-6&metadataPrefix=ccmm-xml
+
+---
+This project output was developed within the [EOSC CZ](https://www.eosc.cz/projekty/narodni-podpora-pro-eosc) initiative throught the project **National Repository Platform for Research Data** (CZ.02.01.01/00/23_014/0008787) funded by Operational program Jan Amos Comenius (OP JAC) of the Ministry of Education, Youth and Sports of the Czech Republic (MEYS).
+
+For more information, please contact us at: info@eosc.cz
+
+---
+
+<p align="left">
+  <img src="https://archaeo-vault.cz/themes/custom/islandora_muni/platform_specific/images/EU+MSMT_en.svg" alt="EU and MŠMT Logos" height="150">
+</p>
