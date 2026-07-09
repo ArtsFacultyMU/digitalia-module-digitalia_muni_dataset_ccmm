@@ -5,11 +5,10 @@ namespace Drupal\digitalia_muni_dataset_ccmm\Plugin\OaiMetadataMap;
 use Drupal\Core\Entity\ContentEntityInterface;
 use Drupal\rest_oai_pmh\Plugin\OaiMetadataMapBase;
 use Drupal\views\Views;
-// use EDTF\Parser\Parser;
 use EDTF\EdtfFactory;
 
 /**
- * Mods using a View.
+ * CCMM using a View.
  *
  * @OaiMetadataMap(
  *  id = "ccmm",
@@ -47,7 +46,7 @@ class CCMM extends OaiMetadataMapBase {
    */
   public function getMetadataWrapper() {
     return [
-      'ccmm' => [
+      'ccmm-xml' => [
         '@xsi:schemaLocation' => 'https://schema.ccmm.cz/research-data/1.1 https://model.ccmm.cz/research-data/dataset/schema.xsd',
         '@xmlns' => 'https://schema.ccmm.cz/research-data/1.1',
         '@xmlns:gml' => 'http://www.opengis.net/gml/3.2',
@@ -95,7 +94,7 @@ class CCMM extends OaiMetadataMapBase {
 
     $parser = \EDTF\EdtfFactory::newParser();
 
-    $render_array['elements']['agent_is_person'][] = [];
+    $render_array['elements']['agent_is_person'] = [];
     $render_array['elements']['role_uri'] = [];
     $render_array['elements']['person_first_names'] = [];
     $render_array['elements']['person_last_names'] = [];
@@ -144,7 +143,7 @@ class CCMM extends OaiMetadataMapBase {
       return '';
     }
 
-    // $render_array['metadata_prefix'] = 'ccmm-xml';
+    $render_array['metadata_prefix'] = 'ccmm-xml';
     // $render_array['elements']['title'][] = $entity->label();
 
     return parent::build($render_array);
@@ -229,12 +228,13 @@ class CCMM extends OaiMetadataMapBase {
         }
 
         foreach ($link_field as $link_item) {
-          if ($link_item->getValue()['source'] != 'ccmm') {
+          $role_uri = trim($link_item->getValue()['uri']);
+          if ($link_item->getValue()['source'] != 'ccmm' || empty($role_uri)) {
             continue;
           }
           // to do contact
           $qualified_relations['elements']['agent_is_person'][] = $agent_is_person;
-          $qualified_relations['elements']['role_uri'][] = $link_item->getValue()['uri'];
+          $qualified_relations['elements']['role_uri'][] = $role_uri;
           $qualified_relations['elements']['person_first_names'][] = $first_names;
           $qualified_relations['elements']['person_last_names'][] = $last_names;
           $qualified_relations['elements']['person_orcid'][] = $orcid;

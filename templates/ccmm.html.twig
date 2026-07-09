@@ -61,10 +61,10 @@
        each dataset shall have at least two qualified relations: one with role “Creator” 
        and the second with role "Publisher". -->
 
-  {% for _ in elements.role_uri %}
+  {% for role_uri in elements.role_uri %}
   <qualified_relation>
     <relation>
-      {% if elements.agent_is_person %}
+      {% if elements.agent_is_person[ loop.index ] %}
       <person>
         {% if elements.person_orcid[ loop.index ] is not empty %}
         <identifier>
@@ -76,9 +76,9 @@
             </scheme>
         </identifier>
         {% endif %}
-        <name>{% if elements.person_first_names[ loop.index ] is not empty and elements.person_last_names[ loop.index ] is not empty %}{{ elements.person_first_names[ loop.index ]|trim }} {{ elements.person_last_names[ loop.index ]|trim }} {% else %} :unkn {% endif %}</name>
-        <given_name>{% if elements.person_first_names[ loop.index ] is not empty %}{{ elements.person_first_names[ loop.index ]|trim }}{% else %} :unkn {% endif %}</given_name>
-        <family_name>{% if elements.person_last_names[ loop.index ] is not empty %}{{ elements.person_last_names[ loop.index ]|trim }}{% else %} :unkn {% endif %}</family_name>
+        <name>{% if elements.person_first_names[ loop.index ]|trim is not empty and elements.person_last_names[ loop.index ]|trim is not empty %}{{ elements.person_first_names[ loop.index ]|trim }} {{ elements.person_last_names[ loop.index ]|trim }}{% else %}:unkn{% endif %}</name>
+        <given_name>{% if elements.person_first_names[ loop.index ] is not empty %}{{ elements.person_first_names[ loop.index ]|trim }}{% else %}:unkn{% endif %}</given_name>
+        <family_name>{% if elements.person_last_names[ loop.index ] is not empty %}{{ elements.person_last_names[ loop.index ]|trim }}{% else %}:unkn{% endif %}</family_name>
         {% if elements.affiliation[ loop.index ] is not empty %}
         <affiliation>
             <name>{{ elements.affiliation[ loop.index ] }}</name>
@@ -87,7 +87,7 @@
       </person>
       {% else %}
       <organization>
-        {% if elements.org_ror[ loop.index ]  is not empty %}
+        {% if elements.org_ror[ loop.index ]|trim is not empty %}
         <identifier>
             <iri>https://ror.org/{{ elements.org_ror[ loop.index ] }}</iri>
             <value>{{ elements.org_ror[ loop.index] }}</value>
@@ -97,12 +97,12 @@
             </scheme>
         </identifier>
         {% endif %}
-        <name>{% if elements.org_name[ loop.index ] is not empty %} {{ elements.org_name[ loop.index ] }} {% else %} :unkn {% endif %}</name>
+        <name>{% if elements.org_name[ loop.index ]|trim is not empty %} {{ elements.org_name[ loop.index ] }} {% else %}:unkn{% endif %}</name>
       </organization>
       {% endif %}
     </relation>
     <role>
-      <iri>{{ elements.role_uri[ loop.index ] }}</iri>
+      <iri>{{ role_uri }}</iri>
     </role>
   </qualified_relation>
   {% endfor %}
