@@ -61,87 +61,70 @@
        each dataset shall have at least two qualified relations: one with role “Creator” 
        and the second with role "Publisher". -->
 
-  {% for role_uri in elements.role_uri %}
-  <qualified_relation>
-    <relation>
-      {% if elements.agent_is_person[ loop.index ] %}
-      <person>
-        {% if elements.person_orcid[ loop.index ] is not empty %}
-        <identifier>
-            <iri>https://orcid.org/{{ elements.person_orcid[ loop.index ] }}</iri>
-            <value>{{ elements.person_orcid[ loop.index ] }}</value>
-            <scheme>
-                <iri>https://orcid.org/</iri>
-                <label xml:lang="en">ORCID</label>
-            </scheme>
-        </identifier>
-        {% endif %}
-        <name>{% if elements.person_first_names[ loop.index ]|trim is not empty and elements.person_last_names[ loop.index ]|trim is not empty %}{{ elements.person_first_names[ loop.index ]|trim }} {{ elements.person_last_names[ loop.index ]|trim }}{% else %}:unkn{% endif %}</name>
-        <given_name>{% if elements.person_first_names[ loop.index ] is not empty %}{{ elements.person_first_names[ loop.index ]|trim }}{% else %}:unkn{% endif %}</given_name>
-        <family_name>{% if elements.person_last_names[ loop.index ] is not empty %}{{ elements.person_last_names[ loop.index ]|trim }}{% else %}:unkn{% endif %}</family_name>
-        {% if elements.affiliation[ loop.index ] is not empty %}
-        <affiliation>
-            <name>{{ elements.affiliation[ loop.index ] }}</name>
-        </affiliation>
-        {% endif %}
-      </person>
-      {% else %}
-      <organization>
-        {% if elements.org_ror[ loop.index ]|trim is not empty %}
-        <identifier>
-            <iri>https://ror.org/{{ elements.org_ror[ loop.index ] }}</iri>
-            <value>{{ elements.org_ror[ loop.index] }}</value>
-            <scheme>
-                <iri>https://ror.org/</iri>
-                <label xml:lang="">ROR</label>
-            </scheme>
-        </identifier>
-        {% endif %}
-        <name>{% if elements.org_name[ loop.index ]|trim is not empty %} {{ elements.org_name[ loop.index ] }} {% else %}:unkn{% endif %}</name>
-      </organization>
+{% for relation in elements.qualified_relations %}
+{% relation %}
+<qualified_relation>
+
+  <relation>
+
+    {% if relation.agent_is_person %}
+
+    <person>
+
+      {% if relation.orcid %}
+      <identifier>
+        <iri>https://orcid.org/{{ relation.orcid }}</iri>
+        <value>{{ relation.orcid }}</value>
+        <scheme>
+          <iri>https://orcid.org/</iri>
+          <label xml:lang="en">ORCID</label>
+        </scheme>
+      </identifier>
       {% endif %}
-    </relation>
-    <role>
-      <iri>{{ role_uri }}</iri>
-    </role>
-  </qualified_relation>
-  {% endfor %}
 
-  {% if 'https://vocabs.ccmm.cz/registry/codelist/AgentRole/Creator' not in elements.role_uri %}
-  <qualified_relation>
-    <relation>
-      <person>
-        <name>:unkn</name>
-        <given_name>:unkn</given_name>
-        <family_name>:unkn</family_name>
-      </person>
-    </relation>
-    <role>
-      <iri>https://vocabs.ccmm.cz/registry/codelist/AgentRole/Creator</iri>
-    </role>
-  </qualified_relation>
-  {% endif %}
+      <name>{{ relation.name ?: ':unkn' }}</name>
+      <given_name>{{ relation.first_names ?: ':unkn' }}</given_name>
+      <family_name>{{ relation.last_names ?: ':unkn' }}</family_name>
 
-  {% if 'https://vocabs.ccmm.cz/registry/codelist/AgentRole/Publisher' not in elements.role_uri %}
-  <qualified_relation>
-    <relation>
-      <organization>
-        <identifier>
-            <iri>https://ror.org/02j46qs45</iri>
-            <value>02j46qs45</value>
-            <scheme>
-                <iri>https://ror.org/</iri>
-                <label xml:lang="">ROR</label>
-            </scheme>
-        </identifier>
-        <name>Masaryk University</name>
-      </organization>
-    </relation>
-    <role>
-      <iri>https://vocabs.ccmm.cz/registry/codelist/AgentRole/Publisher</iri>
-    </role>
-  </qualified_relation>
-  {% endif %}
+      {% if relation.affiliation %}
+      <affiliation>
+        <name>{{ relation.affiliation }}</name>
+      </affiliation>
+      {% endif %}
+
+    </person>
+
+    {% else %}
+
+    <organization>
+
+      {% if relation.ror %}
+      <identifier>
+        <iri>https://ror.org/{{ relation.ror }}</iri>
+        <value>{{ relation.ror }}</value>
+        <scheme>
+          <iri>https://ror.org/</iri>
+          <label>ROR</label>
+        </scheme>
+      </identifier>
+      {% endif %}
+
+      <name>{{ relation.name ?: ':unkn' }}</name>
+
+    </organization>
+
+    {% endif %}
+
+  </relation>
+
+  <role>
+    <iri>{{ relation.role_uri }}</iri>
+    <label xml:lang="en">{{ relation.role }}</label>
+  </role>
+
+</qualified_relation>
+
+{% endfor %}
     
   <!-- (1-1) Publication year -->
   <publication_year>{{ elements.publication_year }}</publication_year>
