@@ -47,11 +47,8 @@ class CCMM extends OaiMetadataMapBase {
    */
   public function getMetadataWrapper() {
     return [
-      'ccmm-xml' => [
-        '@xsi:schemaLocation' => 'https://schema.ccmm.cz/research-data/1.1 https://model.ccmm.cz/research-data/dataset/schema.xsd',
+      'dataset' => [
         '@xmlns' => 'https://schema.ccmm.cz/research-data/1.1',
-        '@xmlns:gml' => 'http://www.opengis.net/gml/3.2',
-        '@xmlns:xsi' => 'http://www.w3.org/2001/XMLSchema-instance',
       ],
     ];
   }
