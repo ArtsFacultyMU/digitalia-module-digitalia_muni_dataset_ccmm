@@ -248,9 +248,14 @@ class CCMM extends OaiMetadataMapBase {
           continue;
         }
 
+        $ror = $funder_entity->get('field_ror')->value ?? '';
+        if (is_string($ror) && str_starts_with($ror, 'https://ror.org/')) {
+          $ror = substr($ror, strlen('https://ror.org/'));
+        }
+
         $funders[] = [
           'name' => $funder_entity->get('field_corporate_body_name')->value ?? '',
-          'ror' => $funder_entity->get('field_ror')->value ?? '',
+          'ror' => $ror,
         ];
       }
 

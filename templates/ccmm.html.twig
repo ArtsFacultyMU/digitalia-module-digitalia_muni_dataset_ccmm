@@ -370,7 +370,7 @@
 {% for funder in funding.funders %}
 <funder>
 <organization>
-{% if funder.ror %}
+{% if funder.ror is not empty %}
 <identifier>
 <iri>https://ror.org/{{ funder.ror}}</iri>
 <value>{{ funder.ror }}</value>
@@ -379,7 +379,7 @@
 <label xml:lang="en">ROR</label>
 </scheme>
 </identifier>
-{% endif % }
+{% endif %}
 <name>{{ funder.name }}</name>
 </organization>
 </funder>
