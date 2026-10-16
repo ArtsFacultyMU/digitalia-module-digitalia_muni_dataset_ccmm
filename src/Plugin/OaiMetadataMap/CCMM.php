@@ -176,7 +176,7 @@ class CCMM extends OaiMetadataMapBase {
   protected function build_agents($value, $node) {
     $agents = [];
 
-    foreach (Array('field_creator', 'field_contributor', 'field_publisher') as $field) {
+    foreach (Array('field_creator', 'field_contributor', 'field_publisher_dm') as $field) {
       if (!$node->hasField($field)) {
         continue;
       }
@@ -185,7 +185,7 @@ class CCMM extends OaiMetadataMapBase {
         case 'field_creator':
           $role = 'Creator';
           break;
-        case 'field_publisher':
+        case 'field_publisher_dm':
           $role = 'Publisher';
           break;
         case 'field_contributor':
