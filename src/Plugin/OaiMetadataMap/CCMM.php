@@ -6,6 +6,7 @@ use Drupal\Core\Entity\ContentEntityInterface;
 use Drupal\rest_oai_pmh\Plugin\OaiMetadataMapBase;
 use Drupal\views\Views;
 use EDTF\EdtfFactory;
+use Drupal\node\Entity\Node;
 
 /**
  * CCMM using a View.
@@ -91,16 +92,15 @@ class CCMM extends OaiMetadataMapBase {
 
     $parser = \EDTF\EdtfFactory::newParser();
 
-    $render_array['elements']['agent_is_person'] = [];
-    $render_array['elements']['role_uri'] = [];
-    $render_array['elements']['person_first_names'] = [];
-    $render_array['elements']['person_last_names'] = [];
-    $render_array['elements']['person_orcid'] = [];
-    $render_array['elements']['org_name'] = [];
-    $render_array['elements']['org_ror'] = [];
-    $render_array['elements']['affiliation'] = [];
-
     foreach ($view_result as $row) {
+      $render_array['elements']['agent_is_person'] = [];
+      $render_array['elements']['role_uri'] = [];
+      $render_array['elements']['person_first_names'] = [];
+      $render_array['elements']['person_last_names'] = [];
+      $render_array['elements']['person_orcid'] = [];
+      $render_array['elements']['org_name'] = [];
+      $render_array['elements']['org_ror'] = [];
+      $render_array['elements']['affiliation'] = [];
       foreach ($view->field as $field) {
         $label = $field->label();
         $value = $field->advancedRender($row);
@@ -120,9 +120,8 @@ class CCMM extends OaiMetadataMapBase {
             case 'date_accepted':
               $render_array = $this->buildTimeInterval($parser, $label, $value, $render_array);
               break;
-            case 'related_agent_people':
-            case 'related_agent_organisations':
-              $render_array = $this->buildQualifiedRelationship($label, $value, $render_array);
+            case 'nid':
+              $render_array = $this->build_node($value, $render_array);
               break;
             // TO DO funding reference
             // TO DO related resources
@@ -141,10 +140,20 @@ class CCMM extends OaiMetadataMapBase {
     }
 
     $render_array['metadata_prefix'] = 'ccmm-xml';
-    // $render_array['elements']['title'][] = $entity->label();
-
     return parent::build($render_array);
   }
+
+/*   protected function buildDataService($label, $value, $render_array) {
+    preg_match_all('/<a\b[^>]*href="([^"]*)"[^>]*>(.*?)<\/a>/s', $value, $matches);
+    $urls = array_map('trim', $matches[1] ?? []);
+    $titles = array_map(
+      fn($title) => trim(strip_tags($title)),
+      $matches[2] ?? []
+    );
+    $render_array['elements']['data_service_titles'][] = $titles;
+    $render_array['elements']['data_service_urls'][] = $urls;
+    return $render_array;
+  } */
 
   protected function buildTimeInterval($parser, $label, $value, $render_array) {
     $parsingResult = $parser->parse($value);
@@ -164,84 +173,109 @@ class CCMM extends OaiMetadataMapBase {
     return $render_array;
   }
 
+  protected function build_agents($value, $node) {
+    $agents = [];
 
-  protected function buildQualifiedRelationship($label, $value, $qualified_relations) {
-    $entity_ids = array_map('intval', explode(', ', $value));
-    $storage = \Drupal::entityTypeManager()->getStorage('digitalia_muni_entity');
-    $entities = $storage->loadMultiple($entity_ids);
-
-    foreach ($entity_ids as $entity_id) {
-      if (empty($entities[$entity_id])) {
+    foreach (Array('field_creator', 'field_contributor', 'field_publisher') as $field) {
+      if (!$node->hasField($field)) {
         continue;
       }
 
-      $ror_iri = '';
-      $agent_is_person = '';
-      $first_names = '';
-      $last_names = '';
-      $orcid = '';
-      $affiliation = '';
-      $org_name = '';
-      $ror_id = '';
-
-      $entity = $entities[$entity_id];
-
-      if ($label == 'related_agent_people') {
-        $related_person = $entity->get('field_related_person')->referencedEntities();
-        if (empty($related_person)) {
-          continue;
-        }
-
-        $agent_is_person = 'TRUE';
-        $first_names = $related_person[0]->get('field_first_names')->value ?? '';
-        $last_names  = $related_person[0]->get('field_last_names')->value ?? '';
-        $orcid       = $related_person[0]->get('field_orcid')->value ?? '';
-        $orcid = preg_replace('#^\s*https?://orcid\.org/#i', '', $orcid);
-        $affiliation = $related_person[0]->get('field_corporate_body_name')->value ?? '';
-      } else {
-        $related_organisation = $entity->get('field_related_organisation')->referencedEntities();
-        if (empty($related_organisation)) {
-          continue;
-        }
-        $agent_is_person = 'FALSE';
-        $org_name = $related_organisation[0]->get('field_corporate_body_name')->value ?? '';
-        $ror_id = $related_organisation[0]->get('field_ror')->value ?? '';
-        $ror_id = preg_replace('#^\s*https?://ror\.org/#i', '', $ror_id);
+      switch ($field) {
+        case 'field_creator':
+          $role = 'Creator';
+          break;
+        case 'field_publisher':
+          $role = 'Publisher';
+          break;
+        case 'field_contributor':
+          $role = "Contributor";
+          break;
       }
+    
+      $items = $node->get($field);
+      $base_iri = "https://vocabs.ccmm.cz/registry/codelist/AgentRole/{$role}";
 
-      $agent_role_terms = $entity->get('field_agent_role')->referencedEntities();
-      if (empty($agent_role_terms)) {
-        continue;
-      }
-
-      foreach ($agent_role_terms as $agent_role_term) {
-        if (empty($agent_role_term)) {
-          continue;
-        }
-
-        $link_field = $agent_role_term->get('field_authority_link');
-        if ($link_field->isEmpty()) {
-          continue;
-        }
-
-        foreach ($link_field as $link_item) {
-          $role_uri = trim($link_item->getValue()['uri']);
-          if ($link_item->getValue()['source'] != 'ccmm' || empty($role_uri)) {
-            continue;
-          }
-          // to do contact
-          $qualified_relations['elements']['agent_is_person'][] = $agent_is_person;
-          $qualified_relations['elements']['role_uri'][] = $role_uri;
-          $qualified_relations['elements']['person_first_names'][] = $first_names;
-          $qualified_relations['elements']['person_last_names'][] = $last_names;
-          $qualified_relations['elements']['person_orcid'][] = $orcid;
-          $qualified_relations['elements']['affiliation'][] = $affiliation;
-          $qualified_relations['elements']['org_name'][] = $org_name;
-          $qualified_relations['elements']['org_ror'][] = $ror_id;
-        }
+      foreach ($items as $item) {
+        $agents[] = [
+          'role'            => $item->role ? preg_replace('/(?<=[a-z])(?=[A-Z])/', ' ', $item->role) : $role,
+          'role_uri'        => $item->role ? "{$base_iri}/{$item->role}" : $base_iri,
+          'agent_is_person' => $item->agent_type === 'person',
+          'name'            => $item->name,
+          'first_names'     => $item->first_names,
+          'last_names'      => $item->last_names,
+          'orcid'           => $item->orcid,
+          'ror'             => $item->ror,
+          'affiliation'     => $item->institution_affiliation,
+          'contact'         => $item->contact,
+        ];
       }
     }
 
-    return $qualified_relations;
+    return $agents;
+
   }
+
+  protected function buildFundingReference($value, $node) {
+    $funding_references = [];
+    if (!$node->hasField('field_funding_reference')) {
+      return $funding_references;
+    }
+
+    $entity_type_manager = \Drupal::entityTypeManager();
+    $digitalia_storage = $entity_type_manager->getStorage('digitalia_muni_entity');
+
+    foreach ($node->get('field_funding_reference') as $funding_item) {
+      $funding_id = $funding_item->target_id ?? NULL;
+      if (empty($funding_id)) {
+        continue;
+      }
+
+      $funding_entity = $digitalia_storage->load($funding_id);
+      if (!$funding_entity) {
+        continue;
+      }
+
+      $funders = [];
+      foreach ($funding_entity->get('field_funder') as $funder_item) {
+        $funder_id = $funder_item->target_id ?? NULL;
+        if (empty($funder_id)) {
+          continue;
+        }
+
+        $funder_entity = $digitalia_storage->load($funder_id);
+        if (!$funder_entity) {
+          continue;
+        }
+
+        $funders[] = [
+          'name' => $funder_entity->get('field_corporate_body_name')->value ?? '',
+          'ror' => $funder_entity->get('field_ror')->value ?? '',
+        ];
+      }
+
+      $funding_references[] = [
+        'award_title' => $funding_entity->get('field_award_title')->value ?? '',
+        'award_id' => $funding_entity->get('field_local_identifier')->value ?? '',
+        'funders' => $funders,
+      ];
+    }
+
+    return $funding_references;
+  }
+
+  /* build node only once */
+  protected function build_node($value, $render_array) {
+    $node = Node::load($value);
+
+    if (empty($node)) {
+      return $render_array;
+    }
+
+    $render_array['elements']['qualified_relations'] = $this->build_agents($value, $node);
+    $render_array['elements']['funding_references'] = $this->buildFundingReference($value, $node);
+
+    return $render_array;
+  }
+
 }
