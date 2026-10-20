@@ -93,14 +93,6 @@ class CCMM extends OaiMetadataMapBase {
     $parser = \EDTF\EdtfFactory::newParser();
 
     foreach ($view_result as $row) {
-      $render_array['elements']['agent_is_person'] = [];
-      $render_array['elements']['role_uri'] = [];
-      $render_array['elements']['person_first_names'] = [];
-      $render_array['elements']['person_last_names'] = [];
-      $render_array['elements']['person_orcid'] = [];
-      $render_array['elements']['org_name'] = [];
-      $render_array['elements']['org_ror'] = [];
-      $render_array['elements']['affiliation'] = [];
       foreach ($view->field as $field) {
         $label = $field->label();
         $value = $field->advancedRender($row);
@@ -123,7 +115,6 @@ class CCMM extends OaiMetadataMapBase {
             case 'nid':
               $render_array = $this->build_node($value, $render_array);
               break;
-            // TO DO funding reference
             // TO DO related resources
             // TO DO download link to file distribution
             // resource type
