@@ -1,5 +1,4 @@
 <metadata_identification>
-<!-- references the original metadata IRI -->
 <iri>{{ elements.platform_url }}{{ elements.metadata_relative_link}}</iri>
 <language>
     {% if elements.metadata_language == 'English' %}
@@ -25,7 +24,7 @@
 </conforms_to_standard>
     <original_repository>
         <iri>{{ elements.platform_url }}</iri>
-        <label>ArchaeoVault</label>
+        <label xml:lang="en">ArchaeoVault</label>
     </original_repository>
 </metadata_identification>
 
@@ -35,6 +34,7 @@
 <value>{{ elements.doi }}</value>
 <scheme>
     <iri>https://doi.org/</iri>
+    <label xml:lang="en">DOI</label>
 </scheme>
 </identifier>
 {% endif %}
@@ -77,7 +77,17 @@
 
     {% if relation.affiliation %}
     <affiliation>
-    <name>{{ relation.affiliation }}</name>
+        {% if relation.ror %}
+        <identifier>
+        <iri>https://ror.org/05wrbcx33</iri>
+        <value>{{ relation.ror }}</value>
+        <scheme>
+        <iri>https://ror.org/</iri>
+        <label xml:lang="en">ROR</label>
+        </scheme>
+        </identifier>
+        {% endif %}
+        <name>{{ relation.affiliation }}</name>
     </affiliation>
     {% endif %}
 
@@ -93,7 +103,7 @@
     <value>{{ relation.ror }}</value>
     <scheme>
         <iri>https://ror.org/</iri>
-        <label>ROR</label>
+        <label xml:lang="en">ROR</label>
     </scheme>
     </identifier>
     {% endif %}
@@ -274,7 +284,6 @@
 {% endif %}
 {% endfor %}
 
-
 <terms_of_use>
 <access_rights>
     <iri>http://purl.org/coar/access_right/c_abf2</iri>
@@ -352,28 +361,49 @@
 </description>
 {% endif %}
 
-{% for data_service in elements.data_services |split (', ') %}
+{% if elements.funding_references is not empty %}
+{% for funding in elements.funding_references %}
+<funding_reference>
+<local_identifier>{{ funding.award_id }}</local_identifier>
+<award_title>{{ funding.award_title }}</award_title>
+{% for funder in funding.funders %}
+<funder>
+<organization>
+{% if funder.ror is not empty %}
+<identifier>
+<iri>https://ror.org/{{ funder.ror}}</iri>
+<value>{{ funder.ror }}</value>
+<scheme>
+<iri>https://ror.org/</iri>
+<label xml:lang="en">ROR</label>
+</scheme>
+</identifier>
+{% endif %}
+<name>{{ funder.name }}</name>
+</organization>
+</funder>
+{% endfor %}
+</funding_reference>
+{% endfor %}
+{% endif %}
+
+{% if elements.data_service_url is not empty %}
+{% for data_service in elements.data_service_url |split (', ') %}
 <distribution>
     <distribution_data_service>
         <iri>{{ data_service }}</iri>
+        <title>{{ data_service }}</title>
+        {% if elements.endpoint_url is not empty %}
         {% for endpoint in elements.endpoint_url |split (', ') %}
         <access_service>
-            <iri>{{ data_service }}</iri>
+            <iri>{{ endpoint }}</iri>
             <endpoint_url>
                 <iri>{{ endpoint }}</iri>
             </endpoint_url>
         </access_service>
         {% endfor %}
+        {% endif %}
     </distribution_data_service>
 </distribution>
 {% endfor %}
-
-{% for url in elements.download_url |split (', ') %}
-<distribution>
-    <distribution_downloadable_file>
-        <download_url>
-            <iri>{{ url }}</iri>
-        </download_url>
-    </distribution_downloadable_file>
-</distribution>
-{% endfor %}
+{% endif %}
